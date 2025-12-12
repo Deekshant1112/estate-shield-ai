@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+
+  properties  Property[]
+}
+
+model Property {
+  id          Int          @id @default(autoincrement())
+  url         String
+  createdAt   DateTime     @default(now())
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id])
+
+  // Extracted from URL or user-provided
+  title       String?
+  location    String?
+  bhk         String?
+
+  // Optional fields (kept for future ML model)
+  price       String?
+  area        String?
+  builder     String?
+
+  // Score is now owned by AI report, not property
+  aiReport    AiReport?
+}
+
+model AiReport {
+  id                     Int      @id @default(autoincrement())
+  propertyId             Int      @unique
+  score                  Int?
+  priceRange             String?
+  verdict                String?
+  summary                String?
+  builderRating          String?
+  rentalYield            String?
+  appreciationForecast   String?
+
+  localityInsights       Json?
+  news                   Json?
+
+  property               Property @relation(fields: [propertyId], references: [id])
+}
